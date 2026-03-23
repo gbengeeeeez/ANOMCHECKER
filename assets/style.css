@@ -1,0 +1,104 @@
+/* assets/style.css */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    background-color: #0a0e27;
+    font-family: 'Segoe UI', sans-serif;
+    color: #e0e0e0;
+}
+
+/* Pulsing dot animation */
+@keyframes pulse {
+    0%   { opacity: 1; transform: scale(1);   }
+    50%  { opacity: 0.5; transform: scale(1.3); }
+    100% { opacity: 1; transform: scale(1);   }
+}
+
+.pulse-dot {
+    width: 10px;
+    height: 10px;
+    background-color: #00f5a0;
+    border-radius: 50%;
+    display: inline-block;
+    animation: pulse 1.5s infinite;
+    margin-right: 6px;
+}
+
+/* ── Upload Zone — full drag and drop fix ──────────────── */
+.upload-zone {
+    border: 2px dashed #00d4ff !important;
+    border-radius: 12px !important;
+    background: rgba(0, 212, 255, 0.05) !important;
+    transition: all 0.3s ease;
+    cursor: pointer !important;
+    width: 100% !important;
+    display: block !important;
+    position: relative !important;
+    min-height: 130px !important;
+    pointer-events: all !important;
+}
+
+.upload-zone:hover {
+    background: rgba(0, 212, 255, 0.12) !important;
+    border-color: #7b2fff !important;
+    box-shadow: 0 0 20px rgba(0, 212, 255, 0.15) !important;
+}
+
+/* Critical fix — every child element must NOT intercept events
+   so drag/drop reaches the dcc.Upload component correctly     */
+.upload-zone *,
+.upload-zone > div,
+.upload-zone > div * {
+    pointer-events: none !important;
+    cursor: pointer !important;
+}
+
+/* Metric cards */
+.metric-card {
+    background: rgba(255,255,255,0.04);
+    border-radius: 12px;
+    padding: 20px;
+    text-align: center;
+    border: 1px solid rgba(255,255,255,0.08);
+    transition: transform 0.2s ease;
+}
+
+.metric-card:hover {
+    transform: translateY(-3px);
+}
+
+/* Navbar */
+.navbar-custom {
+    background: rgba(10, 14, 39, 0.95) !important;
+    border-bottom: 1px solid rgba(0, 212, 255, 0.3);
+    backdrop-filter: blur(10px);
+    padding: 12px 24px;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+}
+
+/* Run button */
+.run-btn {
+    background: linear-gradient(135deg, #7b2fff, #00d4ff) !important;
+    border: none !important;
+    border-radius: 10px !important;
+    font-weight: 700 !important;
+    font-size: 16px !important;
+    letter-spacing: 1px;
+    transition: opacity 0.3s;
+}
+
+.run-btn:hover {
+    opacity: 0.85;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar       { width: 6px; }
+::-webkit-scrollbar-track { background: #0a0e27; }
+::-webkit-scrollbar-thumb { background: #7b2fff; border-radius: 3px; }
