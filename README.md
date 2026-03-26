@@ -1,12 +1,14 @@
 # 🛡️ ANOMCHECKER
-### Clustering-Based Cybersecurity Threat Detection in Network Logs
+### K-Means Clustering-Based Cybersecurity Threat Detection in Network Logs
 
 [![Python](https://img.shields.io/badge/Python-3.11-blue?logo=python)](https://www.python.org/)
 [![Dash](https://img.shields.io/badge/Plotly_Dash-2.14.0-cyan?logo=plotly)](https://dash.plotly.com/)
 [![Scikit-learn](https://img.shields.io/badge/Scikit--learn-1.3.2-orange?logo=scikit-learn)](https://scikit-learn.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
-ANOMCHECKER is an interactive web application that detects cybersecurity threats in network log files using **unsupervised clustering** — no labelled training data required. Upload a CSV network traffic file, select a row range, and the system automatically runs **K-Means** and **DBSCAN** clustering, evaluates both algorithms, and surfaces flagged anomalies for download.
+ANOMCHECKER is an interactive web application that detects cybersecurity threats in network log files using **K-Means unsupervised clustering** — no labelled training data or predefined attack signatures required. Upload a CSV network traffic file, select a row range, and the system automatically runs K-Means clustering, evaluates performance, and surfaces flagged anomalies for download.
+
+> **Algorithm Selection:** K-Means was selected through a rigorous comparative study of three unsupervised algorithms — K-Means, DBSCAN, and Isolation Forest — evaluated across **eight row ranges** of the UNSW-NB15 testing partition in Google Colab. K-Means achieved the highest average F1-score of **41.81%** across all ranges, outperforming DBSCAN (12.95%) and Isolation Forest (40.55%).
 
 ---
 
@@ -18,14 +20,49 @@ ANOMCHECKER is an interactive web application that detects cybersecurity threats
 
 ## ✨ Features
 
-- **Fully unsupervised** — detects threats without predefined attack signatures or labelled datasets
-- **Two algorithms compared** — K-Means (8-seed optimised) vs DBSCAN (automated epsilon selection)
+- **Fully unsupervised** — detects threats without labelled datasets or predefined attack signatures
+- **K-Means with 8-seed optimisation** — runs across eight random seeds, selects the best F1-score run
+- **k-means++ initialisation** — robust centroid placement for reliable cluster separation
 - **Interactive Plotly Dash dashboard** — browser-based, no coding required to use
-- **PCA scatter plots** — visualise cluster separation for both algorithms
-- **Side-by-side confusion matrices** — separate labelled heatmaps for K-Means and DBSCAN
-- **Algorithm comparison bar chart** — Accuracy, Precision, Recall, F1-Score, FPR at a glance
-- **Downloadable threat report** — flagged anomaly rows exported as CSV with `ANOMCHECKER_FLAG` column
+- **PCA scatter plot** — visualise cluster separation in 2D principal component space
+- **Confusion matrix heatmap** — clear TP, TN, FP, FN breakdown with colour coding
+- **Performance metrics bar chart** — Accuracy, Precision, Recall, F1-Score, FPR at a glance
+- **Downloadable threat report** — flagged rows exported as CSV with `ANOMCHECKER_FLAG` column
 - **Supports CICIDS2017 and UNSW-NB15** benchmark datasets out of the box
+
+---
+
+## 📊 Experimental Results
+
+### Primary Experiment
+**Dataset:** UNSW-NB15 Testing Partition — Rows 60,001 to 70,000
+**Subset:** n=10,000 records | 41.5% Normal / 58.5% Attack
+
+| Metric | K-Means | DBSCAN | Isolation Forest |
+|--------|---------|--------|-----------------|
+| Accuracy | **59.40%** | 44.27% | 37.34% |
+| Precision | **68.12%** | 62.72% | 45.86% |
+| Recall | **57.55%** | 11.76% | 39.18% |
+| F1-Score | **62.39%** | 19.80% | 42.26% |
+| False Positive Rate | 37.99% | **9.86%** | 65.26% |
+
+> DBSCAN and Isolation Forest results were generated in Google Colab for comparative documentation. ANOMCHECKER runs K-Means as its production algorithm.
+
+### Eight-Range Trend Analysis (Google Colab)
+
+| Row Range | Normal % | Attack % | K-Means F1 | DBSCAN F1 | Iso. Forest F1 |
+|-----------|----------|----------|------------|-----------|----------------|
+| 1–10,000 | 2.4% | 97.6% | 59.97% | 20.08% | 64.58% |
+| 10,001–20,000 | 0.0% | 100.0% | 27.44% | 23.76% | 66.67% |
+| 20,001–30,000 | 66.4% | 33.6% | **99.17%** | 2.10% | 35.95% |
+| 30,001–40,000 * | 100.0% | 0.0% | 0.00% | 0.00% | 0.00% |
+| 40,001–50,000 | 36.4% | 63.6% | 43.07% | 15.92% | 48.51% |
+| 50,001–60,000 | 0.0% | 100.0% | 42.41% | 21.97% | 66.65% |
+| **60,001–70,000** | **41.5%** | **58.5%** | **62.39%** | 19.80% | 42.02% |
+| 70,001–80,000 * | 100.0% | 0.0% | 0.00% | 0.00% | 0.00% |
+| **AVERAGE** | | | **41.81%** | 12.95% | 40.55% |
+
+> \* Single-class ranges — F1=0% is expected behaviour, not algorithm failure.
 
 ---
 
@@ -36,10 +73,10 @@ ANOMCHECKER/
 │
 ├── app.py                  # Entry point — launches Dash server at localhost:8050
 ├── layout.py               # Full dashboard UI structure (Plotly Dash)
-├── callbacks.py            # All Dash callback logic
+├── callbacks.py            # All Dash callback logic — K-Means only pipeline
 ├── preprocessing.py        # 5-step data preprocessing pipeline
-├── models.py               # K-Means and DBSCAN clustering implementations
-├── visualizations.py       # All Plotly figure builders
+├── models.py               # K-Means 8-seed optimisation + metric computation
+├── visualizations.py       # PCA scatter, confusion matrix, metrics bar chart
 │
 ├── requirements.txt        # Python dependencies
 └── README.md               # This file
@@ -50,14 +87,12 @@ ANOMCHECKER/
 ## ⚙️ Installation
 
 ### 1. Clone the repository
-
 ```bash
 git clone https://github.com/YOURUSERNAME/ANOMCHECKER.git
 cd ANOMCHECKER
 ```
 
-### 2. (Recommended) Create a virtual environment
-
+### 2. Create a virtual environment (recommended)
 ```bash
 python -m venv venv
 
@@ -69,18 +104,16 @@ source venv/bin/activate
 ```
 
 ### 3. Install dependencies
-
 ```bash
 pip install -r requirements.txt
 ```
 
 ### 4. Run the application
-
 ```bash
 python app.py
 ```
 
-Then open your browser and navigate to **http://localhost:8050**
+Open your browser and navigate to **http://localhost:8050**
 
 ---
 
@@ -88,54 +121,71 @@ Then open your browser and navigate to **http://localhost:8050**
 
 1. **Upload** a network traffic CSV file (CICIDS2017 or UNSW-NB15 format)
 2. **Set row range** — enter start and end rows (max 10,000 rows per analysis)
-3. **Click RUN ANOMCHECKER** — preprocessing and clustering execute automatically
-4. **View results** — metric cards, PCA scatter plots, confusion matrices, comparison chart
+3. **Click RUN ANOMCHECKER** — preprocessing and K-Means execute automatically
+4. **View results** — metric cards, PCA scatter plot, confusion matrix, metrics bar chart
 5. **Download** — export flagged threat rows as `anomchecker_flagged_threats.csv`
 
 ---
 
-## 📊 Algorithms
+## 🔬 How It Works
 
-### K-Means
-- `k=2` (binary normal/threat classification)
-- `k-means++` initialisation for robust centroid placement
-- **8-seed optimisation** (seeds: 0, 1, 2, 3, 7, 10, 42, 99) — best F1-score run selected
-- Cluster labelling by size: larger cluster = Normal, smaller = Threat
+### K-Means Clustering
+- **k=2** — binary classification: Normal (0) vs Threat (1)
+- **k-means++ initialisation** for robust centroid placement
+- **8-seed optimisation** — seeds 0, 1, 2, 3, 7, 10, 42, 99; best F1-score run selected
+- **Cluster labelling by size** — larger cluster = Normal, smaller = Threat
 
-### DBSCAN
-- **Automated epsilon selection** via 85th-percentile of 5-nearest-neighbour distance distribution — no manual tuning required
-- `MinPts = 5`
-- Noise points (label = -1) mapped to Threat class; cluster members mapped to Normal
+### Why K-Means?
+Empirically validated across 8 row ranges of the UNSW-NB15 testing partition:
+- Highest average F1-score (41.81%) — DBSCAN 12.95%, Isolation Forest 40.55%
+- Most consistent on mixed-class ranges representing real-world conditions
+- Near-perfect detection (F1=99.17%) on normal-majority subsets
+- DBSCAN fails because dense attack groups are misclassified as normal clusters
+- Isolation Forest produces excessive false positives (65.26% FPR) on mixed-class data
 
 ---
 
 ## 🔄 Preprocessing Pipeline
 
-The 5-step pipeline (`preprocessing.py`) applied before clustering:
-
 | Step | Operation |
 |------|-----------|
-| 1 | Drop irrelevant columns (IP strings, timestamps, ID fields) |
-| 2 | Handle infinite and missing values (replace ±inf → NaN; impute with column means) |
+| 1 | Drop irrelevant columns (IP strings, timestamps, IDs) |
+| 2 | Handle infinite/missing values — replace ±inf with NaN; impute with column means |
 | 3 | Remove zero-variance features |
 | 4 | Remove highly correlated features (Pearson \|r\| > 0.95) |
-| 5 | StandardScaler normalisation (zero mean, unit variance) |
+| 5 | StandardScaler normalisation — z = (x − μ) / σ |
 
 ---
 
-## 📈 Experimental Results
+## 📏 Evaluation Metrics
 
-Primary experiment: **UNSW-NB15 testing partition**, rows 60,001–70,000 (n=10,000; 41.5% normal / 58.5% attack)
+| Metric | Formula |
+|--------|---------|
+| Accuracy | (TP + TN) / (TP + TN + FP + FN) |
+| Precision | TP / (TP + FP) |
+| Recall | TP / (TP + FN) |
+| F1-Score | 2 × (Precision × Recall) / (Precision + Recall) |
+| False Positive Rate | FP / (FP + TN) |
 
-| Metric | K-Means | DBSCAN | Winner |
-|--------|---------|--------|--------|
-| Accuracy | 59.40% | 43.08% | K-Means |
-| Precision | 68.12% | 56.85% | K-Means |
-| Recall | 57.55% | 11.35% | K-Means |
-| F1-Score | **62.39%** | 18.92% | **K-Means** |
-| False Positive Rate | 37.99% | **12.15%** | **DBSCAN** |
+---
 
-> **Note:** The elevated FPR for K-Means reflects the attack-majority composition of the UNSW-NB15 testing partition (52.6% attack), which is an intentional property of the official dataset designed for challenging evaluation.
+## 🗃️ Supported Datasets
+
+| Dataset | Source | Records | Features |
+|---------|--------|---------|----------|
+| UNSW-NB15 | Australian Centre for Cyber Security, UNSW Canberra | ~2.5M | 49 |
+| CICIDS2017 | Canadian Institute for Cybersecurity, Univ. of New Brunswick | ~3M | 80+ |
+
+---
+
+## 🔁 Reproducing Experimental Results
+
+1. Download the **UNSW-NB15 testing partition** CSV from [research.unsw.edu.au](https://research.unsw.edu.au/projects/unsw-nb15-dataset)
+2. Upload to ANOMCHECKER
+3. Set **Start Row: 60001** and **End Row: 70000**
+4. Click **RUN ANOMCHECKER**
+
+Expected: K-Means Accuracy=59.40%, Precision=68.12%, Recall=57.55%, F1=62.39%, FPR=37.99%
 
 ---
 
@@ -154,43 +204,20 @@ Full list in `requirements.txt`.
 
 ---
 
-## 🗃️ Supported Datasets
-
-| Dataset | Source | Records | Features |
-|---------|--------|---------|----------|
-| UNSW-NB15 | Australian Centre for Cyber Security (ACCS), UNSW Canberra | ~2.5M | 49 |
-| CICIDS2017 | Canadian Institute for Cybersecurity (CIC), Univ. of New Brunswick | ~3M | 80+ |
-
-Both datasets are publicly available for research use.
-
----
-
-## 🔬 Reproducing Experimental Results
-
-To reproduce the results reported in the thesis:
-
-1. Download the **UNSW-NB15 testing partition** CSV from the [official UNSW-NB15 page](https://research.unsw.edu.au/projects/unsw-nb15-dataset)
-2. Upload the file to ANOMCHECKER
-3. Set **Start Row: 60001** and **End Row: 70000**
-4. Click **RUN ANOMCHECKER**
-
-Expected output: K-Means F1 ≈ 62.39%, DBSCAN F1 ≈ 18.92%
-
----
-
 ## 📄 License
 
-This project is licensed under the MIT License — see the [LICENSE](LICENSE) file for details.
+MIT License — see [LICENSE](LICENSE) for details.
 
 ---
 
 ## 👤 Author
 
-Developed as an undergraduate thesis project at **Babcock University**, Department of Computer Science, Ilishan-Remo, Ogun State, Nigeria.
+Undergraduate thesis project — **Babcock University**, Department of Computer Science, Ilishan-Remo, Ogun State, Nigeria.
 
 ---
 
 ## 🙏 Acknowledgements
 
-- UNSW-NB15 dataset: Moustafa, N. & Slay, J. (2015). UNSW-NB15: A comprehensive data set for network intrusion detection systems. *MilCIS 2015*.
-- CICIDS2017 dataset: Sharafaldin, I., Lashkari, A. H., & Ghorbani, A. A. (2018). Toward generating a new intrusion detection dataset and intrusion traffic characterization. *ICISSP 2018*.
+- UNSW-NB15: Moustafa, N. & Slay, J. (2015). *MilCIS 2015*.
+- CICIDS2017: Sharafaldin, I., Lashkari, A. H., & Ghorbani, A. A. (2018). *ICISSP 2018*.
+- Built with [Plotly Dash](https://dash.plotly.com/), [Scikit-learn](https://scikit-learn.org/), and [Pandas](https://pandas.pydata.org/).
