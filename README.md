@@ -14,7 +14,7 @@ ANOMCHECKER is an interactive web application that detects cybersecurity threats
 
 ## 📸 Dashboard Preview
 
-> *(Add a screenshot of your running dashboard here)*
+![ANOMCHECKER Dashboard](assets/dashboard_preview.png)
 
 ---
 
